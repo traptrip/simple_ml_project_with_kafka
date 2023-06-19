@@ -38,6 +38,9 @@ jobs:
       
       - name: Pull with Docker Compose
         run: docker compose pull
+
+      - name: Daemon containers
+        run: docker compose up -d mongo zookeeper kafka kafka-topics-generator kafka-consumer
       
       - name: Run tests
-        run: timeout 60 sh -c 'docker compose up'
+        run: docker compose up test
