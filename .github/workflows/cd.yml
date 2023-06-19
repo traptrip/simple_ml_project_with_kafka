@@ -26,14 +26,15 @@ jobs:
       
       - name: Set env vars
         run: |
-          DB_USER=${{ secrets.DB_USER }}
-          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-          DB_HOST=${{ secrets.DB_HOST }}
-          DB_PORT=${{ secrets.DB_PORT }}
-          DB_NAME=${{ secrets.DB_NAME }}
-          ANSIBLE_PASSWD=${{ secrets.ANSIBLE_PASSWD }}
-          KAFKA_HOST=${{ secrets.KAFKA_HOST }}
-          KAFKA_PORT=${{ secrets.KAFKA_PORT }}
+          touch .env
+          echo DB_USER=${{ secrets.DB_USER }} >> .env
+          echo DB_PASSWORD=${{ secrets.DB_PASSWORD }} >> .env
+          echo DB_HOST=${{ secrets.DB_HOST }} >> .env
+          echo DB_PORT=${{ secrets.DB_PORT }} >> .env
+          echo DB_NAME=${{ secrets.DB_NAME }} >> .env
+          echo ANSIBLE_PASSWD=${{ secrets.ANSIBLE_PASSWD }} >> .env
+          echo KAFKA_HOST=${{ secrets.KAFKA_HOST }} >> .env
+          echo KAFKA_PORT=${{ secrets.KAFKA_PORT }} >> .env
       
       - name: Pull with Docker Compose
         run: docker compose pull
