@@ -8,6 +8,8 @@ ARG DB_HOST
 ARG DB_PORT
 ARG DB_NAME
 ARG ANSIBLE_PASSWD
+ARG KAFKA_HOST
+ARG KAFKA_PORT
 ENV PYTHONUNBUFFERED 1
 
 COPY requirements.txt requirements.txt
@@ -22,6 +24,10 @@ RUN touch ansible.credentials && \
     echo $DB_HOST >> db.credentials && \
     echo $DB_PORT >> db.credentials && \
     echo $DB_NAME >> db.credentials && \
-    ansible-vault encrypt db.credentials --vault-password-file=ansible.credentials
+    touch kafka.credentials && \
+    echo $KAFKA_HOST >> kafka.credentials && \
+    echo $KAFKA_PORT >> kafka.credentials && \
+    ansible-vault encrypt db.credentials --vault-password-file=ansible.credentials && \
+    ansible-vault encrypt kafka.credentials --vault-password-file=ansible.credentials
 
 COPY . .

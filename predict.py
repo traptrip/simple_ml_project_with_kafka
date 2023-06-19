@@ -1,15 +1,34 @@
+import os
 import logging
+import pickle
 from pathlib import Path
 
 import torch
 import pandas as pd
 from tqdm import tqdm
+from ansible_vault import Vault
+from kafka import KafkaProducer
 
 from src.utils import read_config
 from src.net import Net
 from src.training import Trainer
 from src.dataset import get_dataloaders
 from database.mongo import MongoDB
+
+ANSIBLE_PASSWD = os.environ.get("ANSIBLE_PASSWD")
+
+
+def send_kafka(predictions):
+    vault = Vault(ANSIBLE_PASSWD)
+    with open("db.credentials", "r") as f:
+        credentials = iter(vault.load(f.read()).split(" "))
+    KAFKA_HOST = next(credentials)
+    KAFKA_PORT = next(credentials)
+
+    with KafkaProducer(
+        bootstrap_servers=f"{KAFKA_HOST}:{KAFKA_PORT}", api_version=(0, 10, 2)
+    ) as producer:
+        producer.send("kafka-pred", pickle.dumps(predictions))
 
 
 def predict(net, test_dataloader, emb_db, device, thresh=0.8):
@@ -63,3 +82,6 @@ if __name__ == "__main__":
 
     logging.info("Save predictions")
     db_client.insert_predicts(prediction)
+
+    logging.info("Send predictions to Kafka")
+    send_kafka(prediction)
