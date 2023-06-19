@@ -9,7 +9,7 @@ on:
 
 env:
   REGISTRY: docker.io
-  IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/simple_ml_project_with_secrets # ${{ github.repository }}
+  IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/simple_ml_project_with_kafka # ${{ github.repository }}
 
 
 jobs:

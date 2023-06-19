@@ -80,5 +80,5 @@ docker compose up
 ![](./assets/pytest_result.png)
 
 ## CI & CD configuration 
-- [CI Pipeline](https://github.com/traptrip/simple_ml_project_with_secrets/blob/main/.github/workflows/ci.yml)
-- [CD Pipeline](https://github.com/traptrip/simple_ml_project_with_secrets/blob/main/.github/workflows/cd.yml)
+- [CI Pipeline](https://github.com/traptrip/simple_ml_project_with_kafka/blob/main/.github/workflows/ci.yml)
+- [CD Pipeline](https://github.com/traptrip/simple_ml_project_with_kafka/blob/main/.github/workflows/cd.yml)

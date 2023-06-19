@@ -3,7 +3,7 @@ version: '3.8'
 services:
   test:
     build: .
-    image: pythondestroyer/simple_ml_project_with_secrets:main
+    image: pythondestroyer/simple_ml_project_with_kafka:main
     command: pytest --skip-slow # remove skip-slow if want to test training phase too
     volumes: 
       - ./data/:/app/data
