@@ -40,7 +40,7 @@ jobs:
         run: docker compose pull
 
       - name: Daemon containers
-        run: docker compose up -d mongo zookeeper kafka kafka-topics-generator kafka-consumer
+        run: docker compose up -d mongo zookeeper kafka kafka-topics-generator
       
       - name: Run tests
         run: docker compose up test
