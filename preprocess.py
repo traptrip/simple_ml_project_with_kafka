@@ -6,6 +6,7 @@ from joblib import Parallel, delayed
 from tqdm import tqdm
 
 from src.utils import read_config
+from src.logger import LOGGER
 
 
 def resize_img(img_p) -> None:
@@ -40,8 +41,10 @@ def split_data(data: pd.DataFrame) -> pd.DataFrame:
 
 def preprocess(data_dir: str) -> bool:
     data_dir = Path(data_dir)
+    LOGGER.info("Resizing images")
     resize_images(data_dir)
     data = pd.read_csv(data_dir / "train.csv")
+    LOGGER.info("Split data")
     data = split_data(data)
     data.to_csv(data_dir / "metadata.csv", index=False)
     return (data_dir / "metadata.csv").exists()

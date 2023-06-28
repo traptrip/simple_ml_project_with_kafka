@@ -1,5 +1,4 @@
 import os
-import logging
 import pickle
 from pathlib import Path
 
@@ -14,6 +13,7 @@ from src.net import Net
 from src.training import Trainer
 from src.dataset import get_dataloaders
 from database.mongo import MongoDB
+from src.logger import LOGGER
 
 ANSIBLE_PASSWD = os.environ.get("ANSIBLE_PASSWD")
 
@@ -61,27 +61,27 @@ def predict(net, test_dataloader, emb_db, device, thresh=0.8):
 if __name__ == "__main__":
     cfg = read_config(Path(__file__).parent / "config.yml")
 
-    logging.info("Initialize database client")
+    LOGGER.info("Initialize database client")
     db_client = MongoDB()
 
-    logging.info("Initialize dataloaders")
+    LOGGER.info("Initialize dataloaders")
     _, _, test_dl = get_dataloaders(Path(cfg.infer.dataset_dir), 1)
 
-    logging.info("Load checkpoint")
+    LOGGER.info("Load checkpoint")
     ckpt_path = Path(cfg.infer.checkpoint_path)
     net = Net(cfg.train)
     net.load_state_dict(Trainer(cfg.train).load_ckpt(ckpt_path)["net_state"])
     net.to(cfg.infer.device)
     net.eval()
 
-    logging.info("Uploading embeddings")
+    LOGGER.info("Uploading embeddings")
     emb_db = db_client.get_all_embeddings()
 
-    logging.info("Prediction")
+    LOGGER.info("Prediction")
     prediction = predict(net, test_dl, emb_db, cfg.infer.device, cfg.infer.threshold)
 
-    logging.info("Save predictions")
+    LOGGER.info("Save predictions")
     db_client.insert_predicts(prediction)
 
-    logging.info("Send predictions to Kafka")
+    LOGGER.info("Send predictions to Kafka")
     send_kafka(prediction)

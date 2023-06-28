@@ -9,6 +9,7 @@ from src.dataset import get_dataloaders
 from src.utils import read_config
 from src.training import Trainer
 from database.mongo import MongoDB
+from src.logger import LOGGER
 
 
 def init_embeddings_db(train_dl, net, emb_size, batch_size, device, db_client: MongoDB):
@@ -40,19 +41,19 @@ if __name__ == "__main__":
     cfg = read_config(Path(__file__).parent / "config.yml")
 
     # prepare database
-    logging.info("Initialize database client")
+    LOGGER.info("Initialize database client")
     db_client = MongoDB()
 
     # prepare data
-    logging.info("Prepare dataloaders")
+    LOGGER.info("Prepare dataloaders")
     train_dl, val_dl, _ = get_dataloaders(Path(cfg.data.data_dir), cfg.train.batch_size)
 
-    logging.info("Training")
+    LOGGER.info("Training")
     trainer = Trainer(cfg.train)
     trainer.train(train_dl, val_dl)
 
     # prepare embeddings_file
-    logging.info("Insert embeddings into DB")
+    LOGGER.info("Insert embeddings into DB")
     init_embeddings_db(
         train_dl,
         trainer.net,
