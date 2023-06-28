@@ -33,8 +33,8 @@ jobs:
           echo DB_PORT=${{ secrets.DB_PORT }} >> .env
           echo DB_NAME=${{ secrets.DB_NAME }} >> .env
           echo ANSIBLE_PASSWD=${{ secrets.ANSIBLE_PASSWD }} >> .env
-          echo KAFKA_HOST=${{ secrets.KAFKA_HOST }} >> .env
-          echo KAFKA_PORT=${{ secrets.KAFKA_PORT }} >> .env
+          echo KAFKAHOST=${{ secrets.KAFKAHOST }} >> .env
+          echo KAFKAPORT=${{ secrets.KAFKAPORT }} >> .env
       
       - name: Pull with Docker Compose
         run: docker compose pull

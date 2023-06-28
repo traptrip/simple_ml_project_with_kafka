@@ -64,5 +64,5 @@ jobs:
             DB_PORT=${{ secrets.DB_PORT }}
             DB_NAME=${{ secrets.DB_NAME }}
             ANSIBLE_PASSWD=${{ secrets.ANSIBLE_PASSWD }}
-            KAFKA_HOST=${{ secrets.KAFKA_HOST }}
-            KAFKA_PORT=${{ secrets.KAFKA_PORT }}
+            KAFKAHOST=${{ secrets.KAFKAHOST }}
+            KAFKAPORT=${{ secrets.KAFKAPORT }}

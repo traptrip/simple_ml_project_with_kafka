@@ -6,10 +6,9 @@ from torch import Tensor
 from pymongo import MongoClient
 from ansible_vault import Vault
 
-ANSIBLE_PASSWD = os.environ.get("ANSIBLE_PASSWD")
-
 
 def get_credentials():
+    ANSIBLE_PASSWD = os.environ.get("ANSIBLE_PASSWD")
     vault = Vault(ANSIBLE_PASSWD)
     with open("db.credentials", "r") as f:
         credentials = iter(vault.load(f.read()).split(" "))
@@ -44,7 +43,7 @@ class MongoDB:
 
     def insert_embeddings(self, embeddings: dict[str, Tensor]):
         embs_list = [
-            {"Id": _id, "emb": emb.flatten().tolist()}
+            {"Id": int(_id), "emb": emb.flatten().tolist()}
             for _id, emb in embeddings.items()
         ]
         self.embeddings_collection.insert_many(embs_list)

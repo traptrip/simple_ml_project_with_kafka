@@ -12,27 +12,28 @@ from database.mongo import MongoDB
 from src.logger import LOGGER
 
 
+@torch.inference_mode()
 def init_embeddings_db(train_dl, net, emb_size, batch_size, device, db_client: MongoDB):
     net.to(device)
     net.eval()
-    with torch.no_grad():
-        embeddings = torch.zeros((len(train_dl.dataset), emb_size))
-        labels = []
-        for i, (batch, label) in enumerate(tqdm(train_dl, desc="Init embeddings DB")):
-            labels.extend(label.tolist())
-            embeddings[i : i + batch_size] = net(batch.to(device)).cpu()
+    embeddings = torch.zeros((len(train_dl.dataset), emb_size))
 
-        # generate embeddings database for each label
-        emb_db = defaultdict(list)
-        id2label = train_dl.dataset.id2label
-        for i, id_ in enumerate(labels):
-            emb_db[id2label[id_]].append(embeddings[i])
+    labels = []
+    for i, (batch, label) in enumerate(tqdm(train_dl, desc="Init embeddings DB")):
+        labels.extend(label.tolist())
+        embeddings[i * batch_size : (i + 1) * batch_size] = net(batch.to(device)).cpu()
 
-        # average embeddings for each label
-        for label, embs in emb_db.items():
-            emb_db[label] = torch.nn.functional.normalize(
-                torch.mean(torch.stack(embs), dim=0, keepdims=True)
-            )
+    # generate embeddings database for each label
+    emb_db = defaultdict(list)
+    id2label = train_dl.dataset.id2label
+    for i, id_ in enumerate(labels):
+        emb_db[id2label[id_]].append(embeddings[i])
+
+    # average embeddings for each label
+    for label, embs in emb_db.items():
+        emb_db[label] = torch.nn.functional.normalize(
+            torch.mean(torch.stack(embs), dim=0, keepdims=True)
+        )
 
     db_client.insert_embeddings(emb_db)
 

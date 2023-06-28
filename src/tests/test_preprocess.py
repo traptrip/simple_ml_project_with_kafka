@@ -1,19 +1,5 @@
-import sys
-from pathlib import Path
-
-import pytest
-import pandas as pd
-
-sys.path.append(Path(__file__).parent / "../")
-
 from preprocess import preprocess, split_data
-
-DEFAULT_TINY_DATA_DIR = Path(__file__).parent / "../../tests/tiny_dataset"
-
-
-@pytest.fixture()
-def tyny_dataset():
-    return pd.read_csv(DEFAULT_TINY_DATA_DIR / "train.csv")
+from src.tests.conftest import DEFAULT_TINY_DATA_DIR
 
 
 def test_split_data(tyny_dataset):

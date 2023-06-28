@@ -29,5 +29,5 @@ infer:
   dataset_dir: data/humpback-whale-identification
   checkpoint_path: runs/best.ckpt
   device: cpu
-  batch_size: 64
+  batch_size: 1
   threshold: 0.5

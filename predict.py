@@ -1,12 +1,8 @@
-import os
-import pickle
 from pathlib import Path
 
 import torch
 import pandas as pd
 from tqdm import tqdm
-from ansible_vault import Vault
-from kafka import KafkaProducer
 
 from src.utils import read_config
 from src.net import Net
@@ -14,21 +10,7 @@ from src.training import Trainer
 from src.dataset import get_dataloaders
 from database.mongo import MongoDB
 from src.logger import LOGGER
-
-ANSIBLE_PASSWD = os.environ.get("ANSIBLE_PASSWD")
-
-
-def send_kafka(predictions):
-    vault = Vault(ANSIBLE_PASSWD)
-    with open("db.credentials", "r") as f:
-        credentials = iter(vault.load(f.read()).split(" "))
-    KAFKA_HOST = next(credentials)
-    KAFKA_PORT = next(credentials)
-
-    with KafkaProducer(
-        bootstrap_servers=f"{KAFKA_HOST}:{KAFKA_PORT}", api_version=(0, 10, 2)
-    ) as producer:
-        producer.send("kafka-pred", pickle.dumps(predictions))
+from src import kafka_utils
 
 
 def predict(net, test_dataloader, emb_db, device, thresh=0.8):
@@ -39,7 +21,7 @@ def predict(net, test_dataloader, emb_db, device, thresh=0.8):
         # work only with batch_size=1 in dataloader!
         for i, data in enumerate(tqdm(test_dataloader)):
             emb = net(data.to(device))
-            cos_sims = torch.nn.functional.cosine_similarity(emb, train_embs, dim=0)
+            cos_sims = torch.nn.functional.cosine_similarity(emb, train_embs, dim=1)
             for j, cs in enumerate(cos_sims):
                 if cs > thresh:
                     labels[i].append(train_labels[j])
@@ -52,25 +34,28 @@ def predict(net, test_dataloader, emb_db, device, thresh=0.8):
     prediction = pd.DataFrame(
         {
             "Image": [img_p.name for img_p in test_dataloader.dataset.imgs_list],
-            "Id": [" ".join(l) for l in labels],
+            "Id": [" ".join(l) for l in map(str, labels)],
         }
     )
     return prediction
 
 
-if __name__ == "__main__":
+def main():
     cfg = read_config(Path(__file__).parent / "config.yml")
 
     LOGGER.info("Initialize database client")
     db_client = MongoDB()
 
     LOGGER.info("Initialize dataloaders")
-    _, _, test_dl = get_dataloaders(Path(cfg.infer.dataset_dir), 1)
+    _, _, test_dl = get_dataloaders(
+        Path(cfg.infer.dataset_dir), cfg.infer.dataset_dir.batch_size
+    )
 
     LOGGER.info("Load checkpoint")
-    ckpt_path = Path(cfg.infer.checkpoint_path)
     net = Net(cfg.train)
-    net.load_state_dict(Trainer(cfg.train).load_ckpt(ckpt_path)["net_state"])
+    ckpt_path = cfg.infer.checkpoint_path
+    if ckpt_path:
+        net.load_state_dict(Trainer(cfg.train).load_ckpt(ckpt_path)["net_state"])
     net.to(cfg.infer.device)
     net.eval()
 
@@ -84,4 +69,8 @@ if __name__ == "__main__":
     db_client.insert_predicts(prediction)
 
     LOGGER.info("Send predictions to Kafka")
-    send_kafka(prediction)
+    kafka_utils.send_kafka(prediction)
+
+
+if __name__ == "__main__":
+    main()
